@@ -1,0 +1,44 @@
+#!/usr/bin/env false
+# Bring-up firmware for a Wemos/LOLIN D1 mini (ESP8266) instead of an ESP32.
+#
+# The cc1101_uponor component is not ESP32-specific (it only uses ESPHome's
+# generic spi/gpio abstractions), but the pin numbers in example-bringup.yaml
+# are ESP32 VSPI pins and don't apply here. A D1 mini has a single hardware
+# SPI bus on fixed pins (D5/D7/D6), unlike ESP32's freely-assignable VSPI.
+#
+# No sensors/entities yet -- this phase is just "can the CC1101 receive and
+# CRC-validate the same frames the RTL-SDR already decodes". Compare the hex
+# this logs against frames from the running uponor-x165 Docker container
+# (github.com/idoiten/uponor-x165).
+
+esphome:
+  name: uponor-cc1101-bringup
+
+esp8266:
+  board: d1_mini
+
+logger:
+  level: DEBUG
+
+# No Wi-Fi/API needed for this bring-up test -- watch over USB serial.
+# Add `wifi:` + `api:` back once you want OTA/remote logs.
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/idoiten/esphome-uponor
+      ref: main
+    components: [cc1101_uponor]
+
+# D1 mini's hardware SPI is on fixed pins -- unlike the ESP32 example, these
+# can't be freely reassigned without falling back to (slower) software SPI.
+spi:
+  clk_pin: D5   # GPIO14
+  mosi_pin: D7  # GPIO13
+  miso_pin: D6  # GPIO12
+
+cc1101_uponor:
+  cs_pin: D8    # GPIO15 -- has an onboard pull-down on most D1 mini boards;
+                # double-check PARTNUM/VERSION come back sane at boot.
+  gdo0_pin: D1  # GPIO5 -- avoid D3/D4 (GPIO0/GPIO2), which are boot-strapping
+                # pins best left free for new assignments.
