@@ -15,6 +15,7 @@
 #pragma once
 #include <cstdint>
 
+namespace esphome {
 namespace cc1101_uponor {
 
 // --- Strobe commands (single-byte, no data phase) ---
@@ -191,3 +192,4 @@ inline constexpr RegVal kConfig[] = {
 };
 
 }  // namespace cc1101_uponor
+}  // namespace esphome
